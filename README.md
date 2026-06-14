@@ -29,12 +29,6 @@ Terraform module that deploys the network layer of a highly available Azure Virt
                      (Private DNS, Key Vault)
 ```
 
-> Add your architecture diagram export here: `docs/architecture.png`
->
-> ```markdown
-> ![Azure HA VNet architecture](docs/architecture.png)
-> ```
-
 ## What this deploys
 
 | Resource | Count | Notes |

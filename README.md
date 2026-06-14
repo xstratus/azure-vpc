@@ -129,22 +129,3 @@ terraform apply -var="location=westeurope" -var="resource_group_name=rg-prod-vne
 | `nat_gateway_public_ip` | Public IP used for outbound traffic |
 | `nsg_public_id` / `nsg_private_id` / `nsg_data_id` | NSG IDs |
 
-## Cost considerations
-
-This deployment incurs ongoing costs primarily from:
-
-- **NAT Gateway**: hourly charge + data processing charge per GB, regardless of traffic.
-- **Public IP (Standard SKU)**: hourly charge.
-
-Estimate before deploying using the [Azure Pricing Calculator](https://azure.microsoft.com/en-us/pricing/calculator/).
-
-## Next steps
-
-This module covers the network layer only (VNet, subnets, NSGs, NAT Gateway). It does not include:
-
-- Compute resources (VMs, VM Scale Sets, AKS)
-- Load balancing (Application Gateway, Azure Load Balancer)
-- Database services
-- Azure Firewall / centralized policy management
-
-These can be layered on top of this network foundation as separate modules.

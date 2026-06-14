@@ -8,6 +8,8 @@
 # .tfstate files (contain sensitive data - NEVER commit)
 *.tfstate
 *.tfstate.*
+*.terraform.lock.hcl*
+.terraform*
 
 # Crash log files
 crash.log

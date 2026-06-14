@@ -39,12 +39,15 @@ resource "azurerm_nat_gateway_public_ip_association" "this" {
 
 # --------------------------------------------------------------------------
 # NAT Gateway <-> Subnet associations
-# All 3 public subnets (one per AZ) route outbound traffic through the
-# single shared NAT Gateway
+#
+# The shared NAT Gateway is associated with the APP subnets (one per AZ).
+# Public subnets get their Internet egress via rt-public (0.0.0.0/0 ->
+# Internet, the closest equivalent to an AWS Internet Gateway route),
+# combined with resources in those subnets holding Public IPs.
 # --------------------------------------------------------------------------
 
-resource "azurerm_subnet_nat_gateway_association" "public" {
+resource "azurerm_subnet_nat_gateway_association" "app" {
   count          = length(var.availability_zones)
-  subnet_id      = azurerm_subnet.public[count.index].id
+  subnet_id      = azurerm_subnet.app[count.index].id
   nat_gateway_id = azurerm_nat_gateway.this.id
 }

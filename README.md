@@ -48,6 +48,7 @@ Terraform module that deploys the network layer of a highly available Azure Virt
 | Network Security Groups | 4 | `NSG-Public`, `NSG-Private`, `NSG-Data`, `NSG-PrivateLink` |
 | NAT Gateway | 1 | Shared across all 3 AZ public subnets |
 | Public IP | 1 | Associated with the NAT Gateway |
+| Route Tables | 3 | `rt-public`, `rt-app`, `rt-data` - one per tier, associated to all 3 AZ subnets of that tier |
 | Key Vault | 1 | Public access disabled, reachable only via Private Endpoint |
 | Storage Account | 1 | Data Lake Gen2 enabled (HNS), ZRS replication, public access disabled |
 | Private Endpoints | 3 | Key Vault (`vault`), Storage Blob (`blob`), Storage DFS (`dfs`) |
@@ -72,6 +73,20 @@ Terraform module that deploys the network layer of a highly available Azure Virt
 | `NSG-PrivateLink` | Private Endpoints subnet | Traffic from App and Data subnet CIDRs on 443/1433/5432 | Restricts access to PaaS Private Endpoints |
 
 All NSGs deny all other inbound traffic by default (explicit `Deny-All-Inbound` rule at priority 4096).
+
+## Routing
+
+Each tier has its own Route Table (UDR), making egress behavior explicit instead of relying on Azure's implicit system routes.
+
+| Tier | Route Table | `0.0.0.0/0` route | How Internet egress works |
+|---|---|---|---|
+| Public | `rt-public` | `Internet` | Direct egress via the subnet's own Public IPs - the closest equivalent to an AWS Internet Gateway route table entry |
+| App | `rt-app` | *(none)* | Egress via the shared NAT Gateway, which is associated directly to the App subnets (see `nat_gateway.tf`) |
+| Data | `rt-data` | `None` | Internet egress is explicitly blocked at the routing layer, independent of NSG rules (defense in depth) |
+
+**Why App has no `0.0.0.0/0` UDR entry:** Azure NAT Gateway cannot be referenced as a `next_hop_type` in a route table. The only way to route a subnet's egress through a NAT Gateway is a direct subnet-to-NAT-Gateway association, which Azure handles internally - it cannot be expressed as a UDR route. The `rt-app` table exists for VNet-local routing visibility and as a placeholder for future custom routes (e.g. forced tunneling to an Azure Firewall).
+
+**Private Endpoint traffic** (Key Vault, Storage) is handled by system routes injected automatically when each Private Endpoint is created - no UDR changes are needed for this traffic to stay on the VNet's private address space.
 
 ## Prerequisites
 
@@ -147,6 +162,7 @@ terraform apply -var="location=westeurope" -var="resource_group_name=rg-prod-vne
 | `storage_account_id` | ID of the Storage Account |
 | `storage_blob_private_endpoint_ip` | Private IP assigned to the Storage Blob Private Endpoint |
 | `storage_dfs_private_endpoint_ip` | Private IP assigned to the Storage DFS (ADLS Gen2) Private Endpoint |
+| `route_table_public_id` / `route_table_app_id` / `route_table_data_id` | Route Table IDs for each tier |
 
 ## Cost considerations
 

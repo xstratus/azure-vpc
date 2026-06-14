@@ -72,3 +72,18 @@ output "storage_dfs_private_endpoint_ip" {
   description = "Private IP address assigned to the Storage Account DFS (ADLS Gen2) Private Endpoint"
   value       = azurerm_private_endpoint.storage_dfs.private_service_connection[0].private_ip_address
 }
+
+output "route_table_public_id" {
+  description = "ID of the route table applied to public subnets (0.0.0.0/0 -> Internet)"
+  value       = azurerm_route_table.public.id
+}
+
+output "route_table_app_id" {
+  description = "ID of the route table applied to app subnets (Internet egress via NAT Gateway association)"
+  value       = azurerm_route_table.app.id
+}
+
+output "route_table_data_id" {
+  description = "ID of the route table applied to data subnets (0.0.0.0/0 -> None, Internet egress blocked)"
+  value       = azurerm_route_table.data.id
+}

@@ -92,7 +92,7 @@ resource "azurerm_network_security_group" "private" {
   }
 }
 
-# NSG-Data: only allows traffic from the app subnets on the database port
+# NSG-Data: allows traffic from app subnets on common data service ports
 resource "azurerm_network_security_group" "data" {
   name                = "nsg-data"
   location            = azurerm_resource_group.this.location
@@ -100,27 +100,27 @@ resource "azurerm_network_security_group" "data" {
   tags                = var.tags
 
   security_rule {
-    name                        = "Allow-From-App-Subnets"
-    priority                    = 100
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "5432" # adjust for your DB engine (1433 SQL, 3306 MySQL, etc.)
-    source_address_prefixes     = var.app_subnet_cidrs
-    destination_address_prefix  = "VirtualNetwork"
+    name                         = "Allow-From-App-Subnets"
+    priority                     = 100
+    direction                    = "Inbound"
+    access                       = "Allow"
+    protocol                     = "Tcp"
+    source_port_range            = "*"
+    destination_port_ranges      = ["3306", "5432", "1433", "6379", "27017", "9092", "9093", "9200", "9042"]
+    source_address_prefixes      = var.app_subnet_cidrs
+    destination_address_prefix   = "VirtualNetwork"
   }
 
   security_rule {
-    name                       = "Allow-VNet-Replication"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "5432"
-    source_address_prefix      = "VirtualNetwork"
-    destination_address_prefix = "VirtualNetwork"
+    name                         = "Allow-VNet-Replication"
+    priority                     = 110
+    direction                    = "Inbound"
+    access                       = "Allow"
+    protocol                     = "Tcp"
+    source_port_range            = "*"
+    destination_port_ranges      = ["3306", "5432", "1433", "6379", "27017", "9092", "9093", "9200", "9042"]
+    source_address_prefix        = "VirtualNetwork"
+    destination_address_prefix   = "VirtualNetwork"
   }
 
   security_rule {
